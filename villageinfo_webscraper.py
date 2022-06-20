@@ -56,8 +56,31 @@ try:
                 mandalsObj = driver.find_element(By.TAG_NAME, "tbody")
                 mandalLinks = mandalsObj.find_elements(By.TAG_NAME, "a")
                 print(mandalLinks[g].text + "######")
-                mandalLinks[g].click()
+                clicked = False
+                while (clicked == False): 
+                    try:
+                        mandalLinks[g].click()
+                        clicked = True
+                    except:
+                        driver.refresh()
+                        pass
                 # into the village level
+                time.sleep(1)
+                tbodyExists_village = False
+                villagesObj = null
+                while (tbodyExists_village == False):
+                    try:
+                        villagesObj = driver.find_element(By.TAG_NAME, "tbody")
+                        tbodyExists_village = True
+                    except NoSuchElementException:
+                        driver.refresh()
+                        pass
+                villageLinks = villagesObj.find_elements(By.TAG_NAME, "a")
+                for a in range(len(villageLinks)):
+                    time.sleep(0.1)
+                    villagesObj = driver.find_element(By.TAG_NAME, "tbody")
+                    villageLinks = villagesObj.find_elements(By.TAG_NAME, "a")
+                    print(villageLinks[a].text)
                 driver.back()
             driver.back()
         driver.back()
