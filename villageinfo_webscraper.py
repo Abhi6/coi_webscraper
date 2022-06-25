@@ -12,7 +12,16 @@ driver.get("https://villageinfo.in/")
 wait = WebDriverWait(driver, 5)
 
 try:
-    statesObj = driver.find_element(By.CLASS_NAME, "tab")
+    statesElementExists = False
+    statesObj = null
+    while (statesElementExists == False):
+        try:
+            statesObj = driver.find_element(By.TAG_NAME, "tbody")
+            statesElementExists = True
+        except NoSuchElementException:
+            driver.refresh()
+            pass
+    # statesObj = driver.find_element(By.CLASS_NAME, "tab")
     statesLinks = statesObj.find_elements(By.TAG_NAME, "a")
     for i in range(len(statesLinks)):
         time.sleep(0.1) # this line is necessary
