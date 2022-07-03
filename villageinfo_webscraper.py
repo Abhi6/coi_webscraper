@@ -1,15 +1,8 @@
-from ast import Try
-from tokenize import Triple
-import traceback
 import time
 from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import NoSuchElementException, TimeoutException
-from sqlalchemy import except_all, null
-
 
 driver = webdriver.Firefox()
 driver.get("https://villageinfo.in/")
