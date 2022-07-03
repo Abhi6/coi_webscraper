@@ -1,98 +1,174 @@
+from ast import Try
+from tokenize import Triple
+import traceback
 import time
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import NoSuchElementException
-from sqlalchemy import null
+from selenium.common.exceptions import NoSuchElementException, TimeoutException
+from sqlalchemy import except_all, null
+
 
 driver = webdriver.Firefox()
 driver.get("https://villageinfo.in/")
 wait = WebDriverWait(driver, 5)
 
-try:
-    statesElementExists = False
-    statesObj = null
-    while (statesElementExists == False):
+def getStates(sleepTime):
+    global statesLinks
+    while (True):
         try:
-            statesObj = driver.find_element(By.TAG_NAME, "tbody")
-            statesElementExists = True
-        except NoSuchElementException:
-            driver.refresh()
-            pass
-    # statesObj = driver.find_element(By.CLASS_NAME, "tab")
-    statesLinks = statesObj.find_elements(By.TAG_NAME, "a")
-    for i in range(len(statesLinks)):
-        time.sleep(0.1) # this line is necessary
-        statesObj = driver.find_element(By.CLASS_NAME, "tab")
-        statesLinks = statesObj.find_elements(By.TAG_NAME, "a")
-        print(statesLinks[i].text + "------------------------")
-        statesLinks[i].click()
-        # into the district level
-        time.sleep(3) # this line is necessary
-        elementExists = False
-        districtsObj = null
-        while (elementExists == False):
-            try:
-                districtsObj = driver.find_element(By.TAG_NAME, "tbody")
-                elementExists = True
-            except NoSuchElementException:
-                driver.refresh()
-                pass
-        # districtsObj = driver.find_element(By.TAG_NAME, "tbody")
-        districtsLinks = districtsObj.find_elements(By.TAG_NAME, "a")
-        for j in range(len(districtsLinks)):
-            time.sleep(0.1)
-            districtsObj = driver.find_element(By.TAG_NAME, "tbody")
-            districtsLinks = districtsObj.find_elements(By.TAG_NAME, "a")
-            print(districtsLinks[j].text + "************")
-            districtsLinks[j].click()
-            # into the tehsil/mandal/subdivision level
-            time.sleep(1)
-            tbodyExists_mandal = False
-            mandalsObj = null
-            while (tbodyExists_mandal == False):
+            statesLinks = driver.find_element(By.CLASS_NAME, "tab").find_elements(By.TAG_NAME, "a")
+            break
+        except:
+            while (True):
                 try:
-                    mandalsObj = driver.find_element(By.TAG_NAME, "tbody")
-                    tbodyExists_mandal = True
-                except NoSuchElementException:
                     driver.refresh()
+                    time.sleep(sleepTime)
+                    break
+                except:
+                    time.sleep(sleepTime)
                     pass
-            mandalLinks = mandalsObj.find_elements(By.TAG_NAME, "a")
-            for g in range(len(mandalLinks)):
-                time.sleep(0.1)
-                mandalsObj = driver.find_element(By.TAG_NAME, "tbody")
-                mandalLinks = mandalsObj.find_elements(By.TAG_NAME, "a")
-                print(mandalLinks[g].text + "######")
-                clicked = False
-                while (clicked == False): 
-                    try:
-                        mandalLinks[g].click()
-                        clicked = True
-                    except:
-                        driver.refresh()
-                        pass
-                # into the village level
-                time.sleep(1)
-                tbodyExists_village = False
-                villagesObj = null
-                while (tbodyExists_village == False):
-                    try:
-                        villagesObj = driver.find_element(By.TAG_NAME, "tbody")
-                        tbodyExists_village = True
-                    except NoSuchElementException:
-                        driver.refresh()
-                        pass
-                villageLinks = villagesObj.find_elements(By.TAG_NAME, "a")
-                for a in range(len(villageLinks)):
-                    time.sleep(0.1)
-                    villagesObj = driver.find_element(By.TAG_NAME, "tbody")
-                    villageLinks = villagesObj.find_elements(By.TAG_NAME, "a")
-                    print(villageLinks[a].text)
-                driver.back()
-            driver.back()
-        driver.back()
-finally:
-    print("Error")
+def clickStates(sleepTime, num):
+    global stateURL
+    getStates(3)
+    print(statesLinks[num].text + "-----------------------")
+    while (True):
+        try:
+            statesLinks[num].click()
+            time.sleep(sleepTime)
+            break
+        except:
+            while (True):
+                try:
+                    driver.refresh()
+                    time.sleep(sleepTime)
+                    break
+                except:
+                    time.sleep(3)
+                    pass
+    time.sleep(sleepTime)
+    stateURL = driver.current_url
+def getDistricts(sleepTime):
+    global districtsLinks
+    while (True):
+        try:
+            districtsLinks = driver.find_element(By.TAG_NAME, "tbody").find_elements(By.TAG_NAME, "a")
+            break
+        except:
+            while (True):
+                try:
+                    driver.refresh()
+                    time.sleep(sleepTime)
+                    break
+                except:
+                    time.sleep(sleepTime)
+                    pass
+def clickDistricts(sleepTime, num):
+    global districtURL
+    getDistricts(3)
+    print(districtsLinks[num].text + "************")
+    while (True):
+        try:
+            districtsLinks[num].click()
+            break
+        except:
+            while (True):
+                try:
+                    driver.refresh()
+                    break
+                except:
+                    time.sleep(sleepTime) 
+                    pass
+    # into the tehsil/mandal/subdivision level
+    time.sleep(sleepTime)
+    districtURL = driver.current_url
+def getMandals(sleepTime):
+    global mandalLinks
+    while (True):
+        try:
+            mandalLinks = driver.find_element(By.TAG_NAME, "tbody").find_elements(By.TAG_NAME, "a")
+            break
+        except:
+            while (True):
+                try:
+                    driver.refresh()
+                    time.sleep(sleepTime)
+                    break
+                except:
+                    time.sleep(sleepTime)
+                    pass
+def clickMandals(sleepTime, num):
+    global mandalURL
+    getMandals(sleepTime)
+    print(mandalLinks[num].text + "######")
+    while (True): 
+        try:
+            mandalLinks[num].click()
+            break
+        except:
+            while (True):
+                try:
+                    driver.refresh()
+                    time.sleep(sleepTime)
+                    break
+                except:
+                    time.sleep(sleepTime)
+                    pass
+            pass
+    # into the village level
+    time.sleep(1)
+    mandalURL = driver.current_url
+def getVillages(sleepTime):
+    global villagesLinks
+    while (True):
+        try:
+            villagesLinks = driver.find_element(By.TAG_NAME, "tbody").find_elements(By.TAG_NAME, "a")
+            break
+        except:
+            while (True):
+                try:
+                    driver.refresh()
+                    time.sleep(sleepTime)
+                    break
+                except:
+                    time.sleep(sleepTime)
+                    pass
+def printVillages(sleepTime, num):
+    getVillages(sleepTime)
+    print(villagesLinks[num].text)
+def toPage(url):
+    while (True):
+        try:
+            driver.get(url)
+            break
+        except:
+            while (True):
+                try: 
+                    driver.refresh()
+                    break
+                except:
+                    time.sleep(1)
+                    pass
+
+
+
+getStates(3)
+for i in range(len(statesLinks)):
+    clickStates(3, i)
+    getDistricts(3)
+    for j in range(len(districtsLinks)):
+        clickDistricts(3, j)
+        getMandals(3)
+        for g in range(len(mandalLinks)):
+            clickMandals(3, g)
+            getVillages(3)
+            for a in range(len(villagesLinks)):
+                printVillages(3, a)
+            toPage(districtURL)
+        toPage(stateURL)
+    toPage("https://villageinfo.in/")
+
+
 driver.close()
