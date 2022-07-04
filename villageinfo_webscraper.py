@@ -1,32 +1,36 @@
+from lib2to3.pgen2 import driver
 import time
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-driver = webdriver.Firefox()
-driver.get("https://villageinfo.in/")
-wait = WebDriverWait(driver, 5)
+import multiprocessing as mp
+import concurrent.futures
 
-def getStates(sleepTime):
-    global statesLinks
+driver = webdriver.Firefox()
+
+
+def getStates(sleepTime, driver):
+    driver.get("https://villageinfo.in/")
+    c = driver.current_url
     while (True):
         try:
             statesLinks = driver.find_element(By.CLASS_NAME, "tab").find_elements(By.TAG_NAME, "a")
-            break
+            return statesLinks
         except:
             while (True):
                 try:
-                    driver.refresh()
+                    driver.get(c)
                     time.sleep(sleepTime)
                     break
                 except:
                     time.sleep(sleepTime)
                     pass
-def clickStates(sleepTime, num):
-    global stateURL
-    getStates(3)
+def clickStates(sleepTime, num, driver):
+    statesLinks = getStates(3, driver)
     print(statesLinks[num].text + "-----------------------")
+    c = driver.current_url
     while (True):
         try:
             statesLinks[num].click()
@@ -35,7 +39,7 @@ def clickStates(sleepTime, num):
         except:
             while (True):
                 try:
-                    driver.refresh()
+                    driver.get(c)
                     time.sleep(sleepTime)
                     break
                 except:
@@ -43,25 +47,26 @@ def clickStates(sleepTime, num):
                     pass
     time.sleep(sleepTime)
     stateURL = driver.current_url
-def getDistricts(sleepTime):
-    global districtsLinks
+    return stateURL
+def getDistricts(sleepTime, driver):
+    c = driver.current_url
     while (True):
         try:
             districtsLinks = driver.find_element(By.TAG_NAME, "tbody").find_elements(By.TAG_NAME, "a")
-            break
+            return districtsLinks
         except:
             while (True):
                 try:
-                    driver.refresh()
+                    driver.get(c)
                     time.sleep(sleepTime)
                     break
                 except:
                     time.sleep(sleepTime)
                     pass
-def clickDistricts(sleepTime, num):
-    global districtURL
-    getDistricts(3)
+def clickDistricts(sleepTime, num, driver):
+    districtsLinks = getDistricts(3, driver)
     print(districtsLinks[num].text + "************")
+    c = driver.current_url
     while (True):
         try:
             districtsLinks[num].click()
@@ -69,7 +74,7 @@ def clickDistricts(sleepTime, num):
         except:
             while (True):
                 try:
-                    driver.refresh()
+                    driver.get(c)
                     break
                 except:
                     time.sleep(sleepTime) 
@@ -77,25 +82,26 @@ def clickDistricts(sleepTime, num):
     # into the tehsil/mandal/subdivision level
     time.sleep(sleepTime)
     districtURL = driver.current_url
-def getMandals(sleepTime):
-    global mandalLinks
+    return districtURL
+def getMandals(sleepTime, driver):
+    c = driver.current_url
     while (True):
         try:
             mandalLinks = driver.find_element(By.TAG_NAME, "tbody").find_elements(By.TAG_NAME, "a")
-            break
+            return mandalLinks
         except:
             while (True):
                 try:
-                    driver.refresh()
+                    driver.get(c)
                     time.sleep(sleepTime)
                     break
                 except:
                     time.sleep(sleepTime)
                     pass
-def clickMandals(sleepTime, num):
-    global mandalURL
-    getMandals(sleepTime)
+def clickMandals(sleepTime, num, driver):
+    mandalLinks = getMandals(sleepTime, driver)
     print(mandalLinks[num].text + "######")
+    c = driver.current_url
     while (True): 
         try:
             mandalLinks[num].click()
@@ -103,7 +109,7 @@ def clickMandals(sleepTime, num):
         except:
             while (True):
                 try:
-                    driver.refresh()
+                    driver.get(c)
                     time.sleep(sleepTime)
                     break
                 except:
@@ -113,25 +119,27 @@ def clickMandals(sleepTime, num):
     # into the village level
     time.sleep(1)
     mandalURL = driver.current_url
-def getVillages(sleepTime):
-    global villagesLinks
+    return mandalURL
+def getVillages(sleepTime, driver):
+    c = driver.current_url
     while (True):
         try:
             villagesLinks = driver.find_element(By.TAG_NAME, "tbody").find_elements(By.TAG_NAME, "a")
-            break
+            return villagesLinks
         except:
             while (True):
                 try:
-                    driver.refresh()
+                    driver.get(c)
                     time.sleep(sleepTime)
                     break
                 except:
                     time.sleep(sleepTime)
                     pass
-def printVillages(sleepTime, num):
-    getVillages(sleepTime)
+def printVillages(sleepTime, num, driver):
+    villagesLinks = getVillages(sleepTime, driver)
     print(villagesLinks[num].text)
-def toPage(url):
+def toPage(url, driver):
+    c = driver.current_url
     while (True):
         try:
             driver.get(url)
@@ -139,29 +147,29 @@ def toPage(url):
         except:
             while (True):
                 try: 
-                    driver.refresh()
+                    driver.get(c)
                     break
                 except:
                     time.sleep(1)
                     pass
 
 
-
-getStates(3)
-for i in range(len(statesLinks)):
-    clickStates(3, i)
-    getDistricts(3)
+statesLinks = getStates(3, driver)
+def scrape(i):
+    stateURL = clickStates(3, i, driver)
+    districtsLinks = getDistricts(3, driver)
     for j in range(len(districtsLinks)):
-        clickDistricts(3, j)
-        getMandals(3)
+        districtURL = clickDistricts(3, j, driver)
+        mandalLinks = getMandals(3, driver)
         for g in range(len(mandalLinks)):
-            clickMandals(3, g)
-            getVillages(3)
+            mandalURL = clickMandals(3, g, driver)
+            villagesLinks = getVillages(3, driver)
             for a in range(len(villagesLinks)):
-                printVillages(3, a)
-            toPage(districtURL)
-        toPage(stateURL)
-    toPage("https://villageinfo.in/")
+                printVillages(3, a, driver)
+            toPage(districtURL, driver)
+        toPage(stateURL, driver)
+    toPage("https://villageinfo.in/", driver)
 
+    driver.close()
 
-driver.close()
+scrape(35)
