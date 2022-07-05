@@ -196,4 +196,7 @@ def scrape(i):
 
     driver.close()
 
-scrape(0)
+if __name__ == '__main__':
+    with concurrent.futures.ProcessPoolExecutor() as executor:
+        targets = [30, 31, 34]
+        results = [executor.submit(scrape, target) for target in targets]
