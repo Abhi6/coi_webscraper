@@ -7,8 +7,9 @@ from selenium.webdriver.support import expected_conditions as EC
 
 import multiprocessing as mp
 import concurrent.futures
+import json
 
-driver = webdriver.Firefox()
+
 
 
 def getStates(sleepTime, driver):
@@ -28,6 +29,7 @@ def getStates(sleepTime, driver):
                     time.sleep(sleepTime)
                     pass
 def clickStates(sleepTime, num, driver):
+    global statesLinks
     statesLinks = getStates(3, driver)
     print(statesLinks[num].text + "-----------------------")
     c = driver.current_url
@@ -64,6 +66,7 @@ def getDistricts(sleepTime, driver):
                     time.sleep(sleepTime)
                     pass
 def clickDistricts(sleepTime, num, driver):
+    global districtsLinks
     districtsLinks = getDistricts(3, driver)
     print(districtsLinks[num].text + "************")
     c = driver.current_url
@@ -99,6 +102,7 @@ def getMandals(sleepTime, driver):
                     time.sleep(sleepTime)
                     pass
 def clickMandals(sleepTime, num, driver):
+    global mandalLinks
     mandalLinks = getMandals(sleepTime, driver)
     print(mandalLinks[num].text + "######")
     c = driver.current_url
@@ -136,6 +140,7 @@ def getVillages(sleepTime, driver):
                     time.sleep(sleepTime)
                     pass
 def printVillages(sleepTime, num, driver):
+    global villagesLinks
     villagesLinks = getVillages(sleepTime, driver)
     print(villagesLinks[num].text)
 def toPage(url, driver):
@@ -152,24 +157,43 @@ def toPage(url, driver):
                 except:
                     time.sleep(1)
                     pass
+def convertText(links):
+    texts = []
+    for item in links:
+        texts.append(item.text)
+    return texts
 
 
-statesLinks = getStates(3, driver)
+
 def scrape(i):
+    driver = webdriver.Firefox()
+    info = {}
+    statesLinks = getStates(3, driver)
+    stateNames = convertText(statesLinks)
     stateURL = clickStates(3, i, driver)
+    info[stateNames[i]] = []
     districtsLinks = getDistricts(3, driver)
+    districtNames = convertText(districtsLinks)
     for j in range(len(districtsLinks)):
         districtURL = clickDistricts(3, j, driver)
+        info[stateNames[i]].append({districtNames[j] : []})
         mandalLinks = getMandals(3, driver)
+        mandalNames = convertText(mandalLinks)
         for g in range(len(mandalLinks)):
             mandalURL = clickMandals(3, g, driver)
+            info[stateNames[i]][-1][districtNames[j]].append({mandalNames[g] : []})
             villagesLinks = getVillages(3, driver)
+            villageNames = convertText(villagesLinks)
             for a in range(len(villagesLinks)):
                 printVillages(3, a, driver)
+                info[stateNames[i]][-1][districtNames[j]][-1][mandalNames[g]].append(villageNames[a])
             toPage(districtURL, driver)
         toPage(stateURL, driver)
     toPage("https://villageinfo.in/", driver)
 
+    with open(f"{stateNames[i]}.json", "w") as output:
+        json.dump(info, output, indent=4)
+
     driver.close()
 
-scrape(35)
+scrape(0)
